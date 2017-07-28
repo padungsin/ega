@@ -1,0 +1,13 @@
+run command 
+mysql
+
+
+CREATE DATABASE teiid 
+  CHARACTER SET = 'utf8'
+  COLLATE = 'utf8_bin';
+
+
+CREATE USER 'teiid'@'%' IDENTIFIED BY 'Password1!';
+
+
+GRANT ALL PRIVILEGES ON teiid.* TO 'teiid'@'%' WITH GRANT OPTION;

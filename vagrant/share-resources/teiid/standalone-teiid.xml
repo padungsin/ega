@@ -69,7 +69,7 @@
             <security-realm name="httpsRealm">
                 <server-identities>
                     <ssl>
-                        <keystore path="teiid.jks" relative-to="jboss.server.config.dir" keystore-password="Password1!" alias="teiid"/>
+                        <keystore path="teiid.jks" relative-to="jboss.server.config.dir" keystore-password="${VAULT::keystore::password::1}" alias="teiid"/>
                     </ssl>
                 </server-identities>
                 <authentication>

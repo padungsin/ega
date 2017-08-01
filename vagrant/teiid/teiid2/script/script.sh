@@ -66,7 +66,7 @@ if [ ! -d "/opt/teiid" ]; then
 	sudo cp /vagrant_data/teiid/wildfly.conf /etc/default/wildfly.conf
 
 	sudo chkconfig --add teiid.sh
-	sudo systemctl enable teiid.service
+	sudo service teiid start
 
 
 	
@@ -75,7 +75,7 @@ if [ ! -d "/opt/teiid" ]; then
 	sudo tar -xvf ~/mod_cluster-1.3.1.Final-linux2-x64-ssl.tar.gz
 	cp -r ~/opt/jboss /opt
 
-	sudo yes|cp /vagrant_data/mod_cluster/httpd.conf /opt/jboss/httpd/httpd/conf/
+	sudo yes|cp /vagrant_data/mod_cluster/teiid2/httpd.conf /opt/jboss/httpd/httpd/conf/
 
 	sudo sh /opt/bpm/jbpms/EAP7-BC/bin/add-user.sh -up /opt/teiid/standalone/configuration/https-users.properties -r httpsRealm -a --user teiidAdmin --password Password1! --role admin
 fi

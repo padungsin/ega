@@ -83,7 +83,7 @@ if [ ! -d "/opt/teiid" ]; then
 	sudo tar -xvf ~/mod_cluster-1.3.1.Final-linux2-x64-ssl.tar.gz
 	sudo cp -r ~/opt/jboss /opt
 
-	sudo yes|cp /vagrant_data/mod_cluster/httpd.conf /opt/jboss/httpd/httpd/conf/
+	sudo yes|cp /vagrant_data/mod_cluster/teiid1/httpd.conf /opt/jboss/httpd/httpd/conf/
 
 	
 fi

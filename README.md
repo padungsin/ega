@@ -116,8 +116,8 @@ sudo sh /opt/teiid/bin/add-user.sh -up /opt/teiid/standalone/configuration/https
         <subsystem xmlns="urn:jboss:domain:undertow:3.0">
             ...
             <server name="default-server">
-                ..
-    <http-listener name="default" socket-binding="http" redirect-socket="https"/>
+                ...
+                <http-listener name="default" socket-binding="http" redirect-socket="https"/>
                 <https-listener name="default-https" security-realm="httpsRealm" socket-binding="https"/>
                 ...
 	</server>
@@ -126,7 +126,7 @@ sudo sh /opt/teiid/bin/add-user.sh -up /opt/teiid/standalone/configuration/https
 
 
 ## Copy JDBC Module and Configuration
-sudo cp -r /vagrant_data/teiid/modules/* /opt/teiid/modules/
+    sudo cp -r /vagrant_data/teiid/modules/* /opt/teiid/modules/
 
 ### Add JDBC Driver
                 <drivers>

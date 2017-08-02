@@ -120,8 +120,7 @@
                 <http-listener name="default" socket-binding="http" redirect-socket="https"/>
                 <https-listener name="default-https" security-realm="httpsRealm" socket-binding="https"/>
                 ...
-	</server>
-		...
+            </server>
 	</subsystem>
 
 

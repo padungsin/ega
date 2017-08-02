@@ -109,7 +109,7 @@
         </management-interfaces>
 
 ### Add Management User
-sudo sh /opt/teiid/bin/add-user.sh -up /opt/teiid/standalone/configuration/https-users.properties -r httpsRealm -a --user teiidAdmin --password Password1! --role admin
+    sudo sh /opt/teiid/bin/add-user.sh -up /opt/teiid/standalone/configuration/https-users.properties -r httpsRealm -a --user teiidAdmin --password Password1! --role admin
 
 ## Add HTTPS Listener
 ### Add https-listener to standalone-teiid.xml
@@ -272,4 +272,4 @@ sudo sh /opt/teiid/bin/add-user.sh -up /opt/teiid/standalone/configuration/https
     </socket-binding-group>
 
 ## Start Mod Cluster
-sudo /opt/jboss/httpd/sbin/apachectl start
+    sudo /opt/jboss/httpd/sbin/apachectl start

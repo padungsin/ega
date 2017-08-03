@@ -77,7 +77,8 @@ if [ ! -d "/opt/teiid" ]; then
 
 	sudo yes|cp /vagrant_data/mod_cluster/teiid2/httpd.conf /opt/jboss/httpd/httpd/conf/
 
-	sudo sh /opt/bpm/jbpms/EAP7-BC/bin/add-user.sh -up /opt/teiid/standalone/configuration/https-users.properties -r httpsRealm -a --user teiidAdmin --password Password1! --role admin
+	sudo sh /opt/bpm/jbpms/add-user.sh -up /opt/teiid/standalone/configuration/https-users.properties -r httpsRealm -a --user teiidAdmin --password Password1! --role admin
+	sudo sh /opt/bpm/jbpms/add-user.sh -r ApplicationRealm -a --user user --password password --role odata
 fi
 
 

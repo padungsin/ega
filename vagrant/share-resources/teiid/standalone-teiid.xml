@@ -1,8 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <server xmlns="urn:jboss:domain:4.0">
+
     <extensions>
         <extension module="org.jboss.as.clustering.infinispan"/>
+        <extension module="org.jboss.as.clustering.jgroups"/>
         <extension module="org.jboss.as.connector"/>
         <extension module="org.jboss.as.deployment-scanner"/>
         <extension module="org.jboss.as.ee"/>
@@ -14,6 +16,7 @@
         <extension module="org.jboss.as.jsf"/>
         <extension module="org.jboss.as.logging"/>
         <extension module="org.jboss.as.mail"/>
+        <extension module="org.jboss.as.modcluster"/>
         <extension module="org.jboss.as.naming"/>
         <extension module="org.jboss.as.pojo"/>
         <extension module="org.jboss.as.remoting"/>
@@ -26,19 +29,23 @@
         <extension module="org.wildfly.extension.batch.jberet"/>
         <extension module="org.wildfly.extension.bean-validation"/>
         <extension module="org.wildfly.extension.io"/>
+        <extension module="org.wildfly.extension.messaging-activemq"/>
         <extension module="org.wildfly.extension.request-controller"/>
         <extension module="org.wildfly.extension.security.manager"/>
         <extension module="org.wildfly.extension.undertow"/>
-	<extension module="org.jboss.as.modcluster"/>
+        <extension module="org.wildfly.iiop-openjdk"/>
     </extensions>
-	<vault>
-		<vault-option name="KEYSTORE_URL" value="/opt/teiid/vault/vault.keystore"/>
-		<vault-option name="KEYSTORE_PASSWORD" value="MASK-5dOaAVafCSd"/>
-		<vault-option name="KEYSTORE_ALIAS" value="vault"/>
-		<vault-option name="SALT" value="1234abcd"/>
-		<vault-option name="ITERATION_COUNT" value="120"/>
-		<vault-option name="ENC_FILE_DIR" value="/opt/teiid/vault/"/>
-	</vault>
+
+
+    <vault>
+        <vault-option name="KEYSTORE_URL" value="/opt/teiid/vault/vault.keystore"/>
+        <vault-option name="KEYSTORE_PASSWORD" value="MASK-5dOaAVafCSd"/>
+        <vault-option name="KEYSTORE_ALIAS" value="vault"/>
+        <vault-option name="SALT" value="1234abcd"/>
+        <vault-option name="ITERATION_COUNT" value="120"/>
+        <vault-option name="ENC_FILE_DIR" value="/opt/teiid/vault/"/>
+    </vault>
+
     <management>
         <security-realms>
             <security-realm name="ManagementRealm">
@@ -59,24 +66,23 @@
                     <properties path="application-roles.properties" relative-to="jboss.server.config.dir"/>
                 </authorization>
             </security-realm>
-		<security-realm name="httpsRealm">
-			<server-identities>
-				<ssl>
-					<keystore path="teiid.jks" relative-to="jboss.server.config.dir" keystore-password="${VAULT::keystore::password::1}" alias="teiid"/>
-				</ssl>
-			</server-identities>
-			<authentication>
-				<properties path="https-users.properties" relative-to="jboss.server.config.dir"/>
-			</authentication>
-		</security-realm>
-
+            <security-realm name="httpsRealm">
+                <server-identities>
+                    <ssl>
+                        <keystore path="teiid.jks" relative-to="jboss.server.config.dir" keystore-password="${VAULT::keystore::password::1}" alias="teiid"/>
+                    </ssl>
+                </server-identities>
+                <authentication>
+                    <properties path="https-users.properties" relative-to="jboss.server.config.dir"/>
+                </authentication>
+            </security-realm>
         </security-realms>
         <audit-log>
             <formatters>
                 <json-formatter name="json-formatter"/>
             </formatters>
             <handlers>
-                <file-handler name="file" formatter="json-formatter" relative-to="jboss.server.data.dir" path="audit-log.log"/>
+                <file-handler name="file" formatter="json-formatter" path="audit-log.log" relative-to="jboss.server.data.dir"/>
             </handlers>
             <logger log-boot="true" log-read-only="false" enabled="false">
                 <handlers>
@@ -88,7 +94,7 @@
             <http-interface security-realm="httpsRealm" http-upgrade-enabled="true">
                 <socket-binding http="management-http" https="management-https"/>
             </http-interface>
-	</management-interfaces>
+        </management-interfaces>
         <access-control provider="simple">
             <role-mapping>
                 <role name="SuperUser">
@@ -99,6 +105,7 @@
             </role-mapping>
         </access-control>
     </management>
+
     <profile>
         <subsystem xmlns="urn:jboss:domain:logging:3.0">
             <console-handler name="CONSOLE">
@@ -164,20 +171,43 @@
                     </security>
                 </datasource>
                 <datasource jndi-name="java:jboss/MariaDBDS" pool-name="MariaDBDS" enabled="true" statistics-enabled="true">
-                    <connection-url>jdbc:mariadb://192.168.33.50:3306/teiid</connection-url>
+                    <connection-url>jdbc:mariadb://192.168.33.30:3306/teiid</connection-url>
+                    <driver>mariadb</driver>
+                    <new-connection-sql>SELECT 1</new-connection-sql>
+                    <security>
+                        <user-name>teiid</user-name>
+                        <password>${VAULT::mariadb::password::1}</password>
+                    </security>
+                    <validation>
+                        <valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLValidConnectionChecker"/>
+                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                        <exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter"/>
+                    </validation>
+                </datasource>
+                <datasource jndi-name="java:/PartsSourceA" pool-name="PartsSourceA" enabled="true">
+                    <connection-url>jdbc:mysql://192.168.33.50:3306/test1</connection-url>
                     <driver>mariadb</driver>
                     <security>
                         <user-name>teiid</user-name>
                         <password>${VAULT::mariadb::password::1}</password>
                     </security>
-    <validation>
-      <valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLValidConnectionChecker"/>
-      <validate-on-match>true</validate-on-match>
-      <background-validation>false</background-validation>
-      <exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter"/>
-    </validation>
                 </datasource>
-
+                <datasource jndi-name="java:/PartsSourceB" pool-name="PartsSourceB" enabled="true">
+                    <connection-url>jdbc:mysql://192.168.33.50:3306/test2</connection-url>
+                    <driver>mariadb</driver>
+                    <security>
+                        <user-name>teiid</user-name>
+                        <password>${VAULT::mariadb::password::1}</password>
+                    </security>
+                </datasource>
+                <datasource jndi-name="java:/Parts" pool-name="Parts" enabled="true">
+                    <connection-url>jdbc:teiid:Parts@mm://localhost:31000</connection-url>
+                    <driver>teiid</driver>
+                    <security>
+                        <user-name>user</user-name>
+                        <password>password</password>
+                    </security>
+                </datasource>
                 <drivers>
                     <driver name="h2" module="com.h2database.h2">
                         <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
@@ -193,7 +223,6 @@
                     <driver name="mariadb" module="org.mariadb">
                         <xa-datasource-class>org.mariadb.jdbc.MariaDbDataSource</xa-datasource-class>
                     </driver>
-
                 </drivers>
             </datasources>
         </subsystem>
@@ -228,7 +257,6 @@
             </session-bean>
             <pools>
                 <bean-instance-pools>
-                    <!-- Automatically configure pools. Alternatively, max-pool-size can be set to a specific value -->
                     <strict-max-pool name="slsb-strict-max-pool" derive-size="from-worker-pools" instance-acquisition-timeout="5" instance-acquisition-timeout-unit="MINUTES"/>
                     <strict-max-pool name="mdb-strict-max-pool" derive-size="from-cpu-count" instance-acquisition-timeout="5" instance-acquisition-timeout-unit="MINUTES"/>
                 </bean-instance-pools>
@@ -309,19 +337,22 @@
             <cache-container name="teiid" default-cache="resultset">
                 <local-cache name="resultset">
                     <transaction mode="NON_XA"/>
+                    <eviction strategy="LIRS" max-entries="1024"/>
                     <expiration lifespan="7200000"/>
-                    <eviction max-entries="1024" strategy="LIRS"/>
                 </local-cache>
                 <local-cache name="resultset-repl">
                     <transaction mode="NON_XA"/>
+                    <eviction strategy="LIRS" max-entries="1024"/>
                     <expiration lifespan="7200000"/>
-                    <eviction max-entries="1024" strategy="LIRS"/>
                 </local-cache>
                 <local-cache name="preparedplan">
+                    <eviction strategy="LIRS" max-entries="512"/>
                     <expiration lifespan="28800"/>
-                    <eviction max-entries="512" strategy="LIRS"/>
                 </local-cache>
             </cache-container>
+        </subsystem>
+        <subsystem xmlns="urn:jboss:domain:iiop-openjdk:1.0">
+            <initializers transactions="spec" security="identity"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>
         <subsystem xmlns="urn:jboss:domain:jca:4.0">
@@ -349,6 +380,56 @@
             <expose-expression-model/>
             <remoting-connector/>
         </subsystem>
+        <subsystem xmlns="urn:jboss:domain:jgroups:4.0">
+            <channels default="ee">
+                <channel name="ee" stack="udp"/>
+            </channels>
+            <stacks>
+                <stack name="udp">
+                    <transport type="UDP" socket-binding="jgroups-udp"/>
+                    <protocol type="PING"/>
+                    <protocol type="MERGE3"/>
+                    <protocol type="FD_SOCK" socket-binding="jgroups-udp-fd"/>
+                    <protocol type="FD_ALL"/>
+                    <protocol type="VERIFY_SUSPECT"/>
+                    <protocol type="pbcast.NAKACK2"/>
+                    <protocol type="UNICAST3"/>
+                    <protocol type="pbcast.STABLE"/>
+                    <protocol type="pbcast.GMS"/>
+                    <protocol type="UFC"/>
+                    <protocol type="MFC"/>
+                    <protocol type="FRAG2"/>
+                </stack>
+                <stack name="tcp">
+                    <transport type="TCP" socket-binding="jgroups-tcp"/>
+                    <protocol type="TCPPING">
+                        <property name="initial_hosts">
+                            192.168.33.21[8080], 192.168.33.22[8080], 192.168.33.21[31000], 192.168.33.22[31000]
+                        </property>
+                        <property name="num_initial_members">
+                            2
+                        </property>
+                        <property name="port_range">
+                            5
+                        </property>
+                        <property name="timeout">
+                            1000
+                        </property>
+                    </protocol>
+                    <protocol type="MPING" socket-binding="jgroups-mping"/>
+                    <protocol type="MERGE3"/>
+                    <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
+                    <protocol type="FD"/>
+                    <protocol type="VERIFY_SUSPECT"/>
+                    <protocol type="pbcast.NAKACK2"/>
+                    <protocol type="UNICAST3"/>
+                    <protocol type="pbcast.STABLE"/>
+                    <protocol type="pbcast.GMS"/>
+                    <protocol type="MFC"/>
+                    <protocol type="FRAG2"/>
+                </stack>
+            </stacks>
+        </subsystem>
         <subsystem xmlns="urn:jboss:domain:jpa:1.1">
             <jpa default-datasource="" default-extended-persistence-inheritance="DEEP"/>
         </subsystem>
@@ -357,6 +438,34 @@
             <mail-session name="default" jndi-name="java:jboss/mail/Default">
                 <smtp-server outbound-socket-binding-ref="mail-smtp"/>
             </mail-session>
+        </subsystem>
+        <subsystem xmlns="urn:jboss:domain:messaging-activemq:1.0">
+            <server name="default">
+                <cluster password="${jboss.messaging.cluster.password:CHANGE ME!!}"/>
+                <security-setting name="#">
+                    <role name="guest" delete-non-durable-queue="true" create-non-durable-queue="true" consume="true" send="true"/>
+                </security-setting>
+                <address-setting name="#" redistribution-delay="1000" message-counter-history-day-limit="10" page-size-bytes="2097152" max-size-bytes="10485760" expiry-address="jms.queue.ExpiryQueue" dead-letter-address="jms.queue.DLQ"/>
+                <http-connector name="http-connector" endpoint="http-acceptor" socket-binding="http"/>
+                <http-connector name="http-connector-throughput" endpoint="http-acceptor-throughput" socket-binding="http">
+                    <param name="batch-delay" value="50"/>
+                </http-connector>
+                <in-vm-connector name="in-vm" server-id="0"/>
+                <http-acceptor name="http-acceptor" http-listener="default"/>
+                <http-acceptor name="http-acceptor-throughput" http-listener="default">
+                    <param name="batch-delay" value="50"/>
+                    <param name="direct-deliver" value="false"/>
+                </http-acceptor>
+                <in-vm-acceptor name="in-vm" server-id="0"/>
+                <broadcast-group name="bg-group1" connectors="http-connector" jgroups-channel="activemq-cluster"/>
+                <discovery-group name="dg-group1" jgroups-channel="activemq-cluster"/>
+                <cluster-connection name="my-cluster" discovery-group="dg-group1" connector-name="http-connector" address="jms"/>
+                <jms-queue name="ExpiryQueue" entries="java:/jms/queue/ExpiryQueue"/>
+                <jms-queue name="DLQ" entries="java:/jms/queue/DLQ"/>
+                <connection-factory name="InVmConnectionFactory" entries="java:/ConnectionFactory" connectors="in-vm"/>
+                <connection-factory name="RemoteConnectionFactory" reconnect-attempts="-1" block-on-acknowledge="true" ha="true" entries="java:jboss/exported/jms/RemoteConnectionFactory" connectors="http-connector"/>
+                <pooled-connection-factory name="activemq-ra" transaction="xa" entries="java:/JmsXA java:jboss/DefaultJMSConnectionFactory" connectors="in-vm"/>
+            </server>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:naming:2.0">
             <remote-naming/>
@@ -384,7 +493,7 @@
                     <module slot="main" id="org.jboss.teiid.resource-adapter.salesforce"/>
                 </resource-adapter>
                 <resource-adapter id="salesforce-34">
-                    <module id="org.jboss.teiid.resource-adapter.salesforce-34"/>
+                    <module slot="main" id="org.jboss.teiid.resource-adapter.salesforce-34"/>
                 </resource-adapter>
                 <resource-adapter id="webservice">
                     <module slot="main" id="org.jboss.teiid.resource-adapter.webservice"/>
@@ -409,6 +518,17 @@
                 </resource-adapter>
                 <resource-adapter id="infinispan">
                     <module slot="main" id="org.jboss.teiid.resource-adapter.infinispan.hotrod"/>
+                </resource-adapter>
+                <resource-adapter id="XmlSourceModel_DS">
+                    <module slot="main" id="org.jboss.teiid.resource-adapter.webservice"/>
+                    <transaction-support>NoTransaction</transaction-support>
+                    <connection-definitions>
+                        <connection-definition class-name="org.teiid.resource.adapter.ws.WSManagedConnectionFactory" jndi-name="java:/XmlSourceModel_DS" enabled="true" pool-name="XmlSourceModel_DS">
+                            <config-property name="EndPoint">
+                                http://localhost:8086/getxml
+                            </config-property>
+                        </connection-definition>
+                    </connection-definitions>
                 </resource-adapter>
             </resource-adapters>
         </subsystem>
@@ -461,16 +581,16 @@
             </security-domains>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:teiid:1.1">
-            <resultset-cache infinispan-container="teiid" name="resultset"/>
-            <preparedplan-cache infinispan-container="teiid" name="preparedplan"/>
+            <policy-decider-module>org.jboss.teiid</policy-decider-module>
+            <resultset-cache infinispan-container="teiid"/>
+            <preparedplan-cache infinispan-container="teiid"/>
             <authentication security-domain="teiid-security"/>
             <transport name="local"/>
             <transport name="odata"/>
-            <transport name="jdbc" protocol="teiid" socket-binding="teiid-jdbc"/>
-            <transport name="odbc" protocol="pg" socket-binding="teiid-odbc">
+            <transport name="jdbc" socket-binding="teiid-jdbc" protocol="teiid"/>
+            <transport name="odbc" socket-binding="teiid-odbc" protocol="pg">
                 <ssl mode="disabled"/>
             </transport>
-            <policy-decider-module>org.jboss.teiid</policy-decider-module>
             <translator name="jdbc-simple" module="org.jboss.teiid.translator.jdbc"/>
             <translator name="jdbc-ansi" module="org.jboss.teiid.translator.jdbc"/>
             <translator name="access" module="org.jboss.teiid.translator.jdbc"/>
@@ -561,16 +681,15 @@
                 <response-header name="x-powered-by-header" header-name="X-Powered-By" header-value="Undertow/1"/>
             </filters>
         </subsystem>
-      <subsystem xmlns="urn:jboss:domain:modcluster:2.0">
-         <mod-cluster-config advertise-socket="modcluster" proxies="proxy1" connector="default" balancer="teiidbalancer" sticky-session="true">
-            <dynamic-load-provider>
-               <load-metric type="cpu"/>
-            </dynamic-load-provider>
-         </mod-cluster-config>
-      </subsystem>
-
+        <subsystem xmlns="urn:jboss:domain:modcluster:2.0">
+            <mod-cluster-config advertise-socket="modcluster" proxies="proxy1 proxy2" balancer="teiidbalancer" sticky-session="true" connector="default">
+                <dynamic-load-provider>
+                    <load-metric type="cpu"/>
+                </dynamic-load-provider>
+            </mod-cluster-config>
+        </subsystem>
         <subsystem xmlns="urn:jboss:domain:webservices:2.0">
-            <wsdl-host>${jboss.bind.address:127.0.0.1}</wsdl-host>
+            <wsdl-host>${jboss.bind.address:0.0.0.0}</wsdl-host>
             <endpoint-config name="Standard-Endpoint-Config"/>
             <endpoint-config name="Recording-Endpoint-Config">
                 <pre-handler-chain name="recording-handlers" protocol-bindings="##SOAP11_HTTP ##SOAP11_HTTP_MTOM ##SOAP12_HTTP ##SOAP12_HTTP_MTOM">
@@ -581,31 +700,57 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:weld:3.0"/>
     </profile>
+
     <interfaces>
         <interface name="management">
-            <inet-address value="${jboss.bind.address.management:127.0.0.1}"/>
+            <inet-address value="${jboss.bind.address.management:0.0.0.0}"/>
         </interface>
         <interface name="public">
-            <inet-address value="${jboss.bind.address:127.0.0.1}"/>
+            <inet-address value="${jboss.bind.address:0.0.0.0}"/>
+        </interface>
+        <interface name="private">
+            <inet-address value="${jboss.bind.address.private:127.0.0.1}"/>
+        </interface>
+        <interface name="unsecure">
+            <inet-address value="${jboss.bind.address.unsecure:127.0.0.1}"/>
         </interface>
     </interfaces>
+
     <socket-binding-group name="standard-sockets" default-interface="public" port-offset="${jboss.socket.binding.port-offset:0}">
         <socket-binding name="management-http" interface="management" port="${jboss.management.http.port:9990}"/>
         <socket-binding name="management-https" interface="management" port="${jboss.management.https.port:9993}"/>
         <socket-binding name="ajp" port="${jboss.ajp.port:8009}"/>
         <socket-binding name="http" port="${jboss.http.port:8080}"/>
         <socket-binding name="https" port="${jboss.https.port:8443}"/>
-        <socket-binding name="teiid-jdbc" port="31000"/>
-        <socket-binding name="teiid-odbc" port="35432"/>
+        <socket-binding name="iiop" interface="unsecure" port="3528"/>
+        <socket-binding name="iiop-ssl" interface="unsecure" port="3529"/>
+        <socket-binding name="jgroups-mping" interface="private" port="0" multicast-address="${jboss.default.multicast.address:224.0.0.1}" multicast-port="45700"/>
+        <socket-binding name="jgroups-tcp" interface="private" port="7600"/>
+        <socket-binding name="jgroups-tcp-fd" interface="private" port="57600"/>
+        <socket-binding name="jgroups-udp" interface="private" port="55200" multicast-address="${jboss.default.multicast.address:224.0.0.1}" multicast-port="45688"/>
+        <socket-binding name="jgroups-udp-fd" interface="private" port="54200"/>
+        <socket-binding name="modcluster" port="0" multicast-address="224.0.0.1" multicast-port="23364"/>
         <socket-binding name="txn-recovery-environment" port="4712"/>
         <socket-binding name="txn-status-manager" port="4713"/>
-	<socket-binding name="modcluster" port="0" multicast-address="224.0.0.1" multicast-port="23364"/>
+        <socket-binding name="teiid-jdbc" port="31000"/>
+        <socket-binding name="teiid-odbc" port="35432"/>
         <outbound-socket-binding name="mail-smtp">
             <remote-destination host="localhost" port="25"/>
         </outbound-socket-binding>
         <outbound-socket-binding name="proxy1">
-            <remote-destination host="192.168.33.23" port="8081"/>
+            <remote-destination host="192.168.33.21" port="8081"/>
         </outbound-socket-binding>
-
+        <outbound-socket-binding name="proxy2">
+            <remote-destination host="192.168.33.22" port="8081"/>
+        </outbound-socket-binding>
     </socket-binding-group>
+
+    <deployments>
+        <deployment name="Parts.vdb" runtime-name="Parts.vdb">
+            <content sha1="4c451b71821ec42d6acdef0aa12b111440fd36a7"/>
+        </deployment>
+        <deployment name="PartsApi.war" runtime-name="PartsApi.war">
+            <content sha1="7151d36c50843c8e131f71f58c0a3f8f28474fad"/>
+        </deployment>
+    </deployments>
 </server>

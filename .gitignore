@@ -19,3 +19,8 @@ vagrant/teiid/teiid1/.vagrant/machines/default/virtualbox/action_set_name
 vagrant/teiid/teiid1/.vagrant/machines/default/virtualbox/creator_uid
 vagrant/teiid/teiid1/.vagrant/machines/default/virtualbox/id
 vagrant/teiid/teiid1/.vagrant/machines/default/virtualbox/index_uuid
+vagrant/share-resources/PartsApi.war
+vagrant/share-resources/po.xml
+vagrant/share-resources/standalone-teiid.xml
+vagrant/share-resources/teiid/Parts.war
+vagrant/share-resources/xml-rest.jar

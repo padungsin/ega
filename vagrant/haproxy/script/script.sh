@@ -8,18 +8,16 @@ if [ "`systemctl is-active haproxy`" == "active" ]; then
 else
 
 	echo "Install HAProxy"
-
+	
 	yum -y install openssl-devel.x86_64
 	yum -y install pcre-devel
 	yum provides pcre.h
-	sudo wget https://www.haproxy.org/download/1.7/src/haproxy-1.7.8.tar.gz -O ~/haproxy.tar.gz
+	sudo wget https://www.haproxy.org/download/1.7/src/haproxy-1.7.8.tar.gz -O /home/vagrant/haproxy.tar.gz
 
-	sudo tar xzvf ~/haproxy.tar.gz -C ~/
-	sudo cd ~/haproxy-1.7.8
+	sudo tar xzvf /home/vagrant/haproxy.tar.gz -C /home/vagrant/
 
-
-	sudo make TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_CRYPT_H=1 USE_LIBCRYPT=1
-	sudo make install
+	sudo make -C /home/vagrant/haproxy-1.7.8 TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_CRYPT_H=1 USE_LIBCRYPT=1
+	sudo make -C /home/vagrant/haproxy-1.7.8 install
 
 	sudo mkdir -p /etc/haproxy
 	sudo mkdir -p /run/haproxy
@@ -30,7 +28,7 @@ else
 	sudo cp /vagrant_data/haproxy/haproxy.cfg /etc/haproxy
 
 
-	sudo cp ~/haproxy-1.7.8/examples/haproxy.init /etc/init.d/haproxy
+	sudo cp /home/vagrant/haproxy-1.7.8/examples/haproxy.init /etc/init.d/haproxy
 	sudo chmod 755 /etc/init.d/haproxy
 	sudo systemctl daemon-reload
 

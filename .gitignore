@@ -24,3 +24,11 @@ vagrant/share-resources/po.xml
 vagrant/share-resources/standalone-teiid.xml
 vagrant/share-resources/teiid/Parts.war
 vagrant/share-resources/xml-rest.jar
+vagrant/haproxy/.vagrant/machines/default/virtualbox/action_provision
+vagrant/haproxy/.vagrant/machines/default/virtualbox/action_set_name
+vagrant/haproxy/.vagrant/machines/default/virtualbox/creator_uid
+vagrant/haproxy/.vagrant/machines/default/virtualbox/id
+vagrant/haproxy/.vagrant/machines/default/virtualbox/index_uuid
+vagrant/haproxy/.vagrant/machines/default/virtualbox/private_key
+vagrant/haproxy/.vagrant/machines/default/virtualbox/synced_folders
+vagrant/share-resources/Parts.vdb

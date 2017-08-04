@@ -67,6 +67,8 @@ if [ ! -d "/opt/teiid" ]; then
 
 	sudo chkconfig --add teiid.sh
 	sudo service teiid start
+	sudo chkconfig teiid.sh on
+
 
 
 	
@@ -76,9 +78,14 @@ if [ ! -d "/opt/teiid" ]; then
 	cp -r ~/opt/jboss /opt
 
 	sudo yes|cp /vagrant_data/mod_cluster/teiid2/httpd.conf /opt/jboss/httpd/httpd/conf/
+	sudo cp /vagrant_data/mod_cluster/mod_cluster /etc/init.d/
+	sudo chmod 755 /etc/init.d/mod_cluster
+	sudo chkconfig --add mod_cluster
+	sudo chkconfig mod_cluster on
 
 	sudo sh /opt/bpm/jbpms/add-user.sh -up /opt/teiid/standalone/configuration/https-users.properties -r httpsRealm -a --user teiidAdmin --password Password1! --role admin
 	sudo sh /opt/teiid/bin/add-user.sh -r ApplicationRealm -a --user user --password password --role odata
+	
 fi
 
 
